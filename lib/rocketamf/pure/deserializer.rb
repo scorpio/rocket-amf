@@ -87,13 +87,37 @@ module RocketAMF
 
       def read_hash source
         len = read_word32_network(source) # Read and ignore length
-        obj = {}
-        @ref_cache << obj
-        while true
-          key = read_string source
-          type = read_int8 source
-          break if type == AMF0_OBJECT_END_MARKER
-          obj[key] = deserialize(source, type)
+
+        # Read first pair
+        key = read_string source
+        type = read_int8 source
+        return [] if type == AMF0_OBJECT_END_MARKER
+
+        # We need to figure out whether this is a real hash, or whether some stupid serializer gave up
+        if key.to_i.to_s == key
+          # Array
+          obj = []
+          @ref_cache << obj
+
+          obj[key.to_i] = deserialize(source, type)
+          while true
+            key = read_string source
+            type = read_int8 source
+            break if type == AMF0_OBJECT_END_MARKER
+            obj[key.to_i] = deserialize(source, type)
+          end
+        else
+          # Hash
+          obj = {}
+          @ref_cache << obj
+
+          obj[key.to_sym] = deserialize(source, type)
+          while true
+            key = read_string source
+            type = read_int8 source
+            break if type == AMF0_OBJECT_END_MARKER
+            obj[key.to_sym] = deserialize(source, type)
+          end
         end
         obj
       end
@@ -126,7 +150,7 @@ module RocketAMF
         props = read_object source, false
 
         # Populate object
-        RocketAMF::ClassMapper.populate_ruby_obj obj, props
+        RocketAMF::ClassMapper.populate_ruby_obj obj, props, {}
         return obj
       end
     end
@@ -321,7 +345,6 @@ module RocketAMF
 
             class_attributes = []
             attribute_count.times{class_attributes << read_string(source)} # Read class members
-
             traits = {
                       :class_name => class_name,
                       :members => class_attributes,
@@ -332,10 +355,16 @@ module RocketAMF
           end
 
           obj = RocketAMF::ClassMapper.get_ruby_obj traits[:class_name]
+					is_hash = obj.is_a? Hash
+					traits[:externalizable] = traits[:externalizable] && !is_hash
           @object_cache << obj
 
-          if traits[:externalizable]
-            obj.externalized_data = deserialize(source)
+          if traits[:externalizable] && traits[:class_name] 
+            if obj.respond_to?(:read_amf)
+							obj.read_amf(RocketAMF::Pure::DataInput.new(source, self))
+            else
+            	obj.externalized_data = deserialize(source)
+            end
           else
             props = {}
             traits[:members].each do |key|

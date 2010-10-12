@@ -2,29 +2,29 @@ module RocketAMF
   module Pure
     module ReadIOHelpers #:nodoc:
       def read_int8 source
-        source.read(1).unpack('c').first
+        source.read(1).unpack('c')[0]
       end
 
       def read_word8 source
-        source.read(1).unpack('C').first
+        source.read(1).unpack('C')[0]
       end
 
       def read_double source
-        source.read(8).unpack('G').first
+        source.read(8).unpack('G')[0]
       end
 
       def read_word16_network source
-        source.read(2).unpack('n').first
+        source.read(2).unpack('n')[0]
       end
 
       def read_int16_network source
         str = source.read(2)
         str.reverse! if byte_order_little? # swap bytes as native=little (and we want network)
-        str.unpack('s').first
+        str.unpack('s')[0]
       end
 
       def read_word32_network source
-        source.read(4).unpack('N').first
+        source.read(4).unpack('N')[0]
       end
 
       def byte_order
@@ -46,7 +46,7 @@ module RocketAMF
         if(integer < 0x80)
           [integer].pack('c')
         elsif(integer < 0x4000)
-          [integer >> 7 & 0x7f | 0x80].pack('c')+
+          [integer >> 7 & 0x7f | 0x80].pack('c') +
           [integer & 0x7f].pack('c')
         elsif(integer < 0x200000)
           [integer >> 14 & 0x7f | 0x80].pack('c') +

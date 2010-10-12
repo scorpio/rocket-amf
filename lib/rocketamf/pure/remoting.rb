@@ -2,17 +2,15 @@ require 'rocketamf/pure/io_helpers'
 
 module RocketAMF
   module Pure
-    # Included into RocketAMF::Envelope, this module replaces the
-    # populate_from_stream and serialize methods with actual working versions
-    module Envelope
-      # Included into RocketAMF::Envelope, this method handles deserializing an
-      # AMF request/response into the envelope
+    # Request deserialization module - provides a method that can be included into
+    # RocketAMF::Request for deserializing the given stream.
+    module Request
       def populate_from_stream stream
         stream = StringIO.new(stream) unless StringIO === stream
 
         # Initialize
         @amf_version = 0
-        @headers = {}
+        @headers = []
         @messages = []
 
         # Read AMF version
@@ -26,7 +24,7 @@ module RocketAMF
           must_understand = read_int8(stream) != 0
           length = read_word32_network stream
           data = RocketAMF.deserialize stream
-          @headers[name] << RocketAMF::Header.new(name, must_understand, data)
+          @headers << RocketAMF::Header.new(name, must_understand, data)
         end
 
         # Read in messages
@@ -47,8 +45,13 @@ module RocketAMF
         self
       end
 
-      # Included into RocketAMF::Envelope, this method handles serializing an
-      # AMF request/response into the envelope
+      private
+      include RocketAMF::Pure::ReadIOHelpers
+    end
+
+    # Response serialization module - provides a method that can be included into
+    # RocketAMF::Response for deserializing the given stream.
+    module Response
       def serialize
         stream = ""
 
@@ -57,7 +60,7 @@ module RocketAMF
 
         # Write headers
         stream << pack_int16_network(@headers.length) # Header count
-        @headers.each_value do |h|
+        @headers.each do |h|
           name_str = h.name
           name_str.encode!("UTF-8").force_encoding("ASCII-8BIT") if name_str.respond_to?(:encode)
           stream << pack_int16_network(name_str.bytesize)
@@ -89,7 +92,6 @@ module RocketAMF
       end
 
       private
-      include RocketAMF::Pure::ReadIOHelpers
       include RocketAMF::Pure::WriteIOHelpers
     end
   end

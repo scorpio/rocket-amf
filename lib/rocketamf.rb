@@ -1,19 +1,9 @@
 $:.unshift(File.dirname(__FILE__)) unless $:.include?(File.dirname(__FILE__)) || $:.include?(File.expand_path(File.dirname(__FILE__)))
 $:.unshift "#{File.expand_path(File.dirname(__FILE__))}/rocketamf/"
 
-require "date"
 require 'rocketamf/class_mapping'
 require 'rocketamf/constants'
 require 'rocketamf/remoting'
-
-# Joc's monkeypatch for string bytesize (only available in 1.8.7+)
-if !"amf".respond_to? :bytesize
-  class String
-    def bytesize
-      self.size
-    end
-  end
-end
 
 # RocketAMF is a full featured AMF0/3 serializer and deserializer with support
 # for Flash -> Ruby and Ruby -> Flash class mapping, custom serializers,
@@ -56,8 +46,8 @@ end
 #       if is_amf?(env)
 #         # Wrap request and response
 #         env['rack.input'].rewind
-#         request = RocketAMF::Envelope.new.populate_from_stream(env['rack.input'].read)
-#         response = RocketAMF::Envelope.new
+#         request = RocketAMF::Request.new.populate_from_stream(env['rack.input'].read)
+#         response = RocketAMF::Response.new
 #
 #         # Handle request
 #         response.each_method_call request do |method, args|
@@ -84,7 +74,7 @@ end
 #   run HelloWorldApp.new
 module RocketAMF
   begin
-    require 'rocketamf/ext'
+    raise LoadError, 'C extensions not implemented'
   rescue LoadError
     require 'rocketamf/pure'
   end

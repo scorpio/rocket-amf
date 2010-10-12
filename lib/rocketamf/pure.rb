@@ -1,6 +1,8 @@
 require 'rocketamf/pure/deserializer'
 require 'rocketamf/pure/serializer'
 require 'rocketamf/pure/remoting'
+require 'rocketamf/pure/data_input'
+require 'rocketamf/pure/data_output'
 
 module RocketAMF
   # This module holds all the modules/classes that implement AMF's functionality
@@ -18,11 +20,15 @@ module RocketAMF
   Serializer = RocketAMF::Pure::Serializer
   AMF3Serializer = RocketAMF::Pure::AMF3Serializer
 
-  # Modify envelope so it can serialize/deserialize
-  class Envelope
+  # Modify request and response so they can serialize/deserialize
+  class Request
     remove_method :populate_from_stream
+    include RocketAMF::Pure::Request
+  end
+
+  class Response
     remove_method :serialize
-    include RocketAMF::Pure::Envelope
+    include RocketAMF::Pure::Response
   end
   #:startdoc:
 end

@@ -12,7 +12,7 @@ module RocketAMF
   #
   #   RocketAMF::ClassMapper.define do |m|
   #     m.map :as => 'AsClass', :ruby => 'RubyClass'
-  #     m.map :as => 'vo.User', :ruby => 'Model::User'
+  #     m.map :as => 'vo.User', :ruby => 'User'
   #   end
   #
   # == Object Population/Serialization
@@ -95,7 +95,7 @@ module RocketAMF
       #
       # Example:
       #
-      #   m.map :as => 'com.example.Date', :ruby => 'Example::Date'
+      #   m.map :as 'com.example.Date', :ruby => 'Example::Date'
       def map params
         [:as, :ruby].each {|k| params[k] = params[k].to_s} # Convert params to strings
         @as_mappings[params[:as]] = params[:ruby]
