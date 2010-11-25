@@ -37,7 +37,7 @@ module RocketAMF
       end
 
       def read_float
-        @stream.read(8).unpack('g')[0]
+        @stream.read(4).unpack('g')[0]
       end
 
       def read_short
