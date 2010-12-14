@@ -67,7 +67,7 @@ module RocketAMF
       def write_date date, stream
         stream << AMF0_DATE_MARKER
 
-        date.utc unless date.utc?
+        date = date.getutc
         seconds = (date.to_f * 1000).to_i
         stream << pack_double(seconds)
 
@@ -161,6 +161,8 @@ module RocketAMF
           write_string obj.to_s, stream
         elsif obj.is_a?(Time)
           write_date obj, stream
+        elsif obj.is_a?(Date)
+          write_date obj.to_time, stream
         elsif obj.is_a?(StringIO)
           write_byte_array obj, stream
         elsif obj.is_a?(RocketAMF::Values::ArrayCollection)
@@ -218,7 +220,7 @@ module RocketAMF
           @object_cache.add_obj date
 
           # Build AMF string
-          date.utc unless date.utc?
+          date = date.getutc unless date.utc?
           seconds = (date.to_f * 1000).to_i
           stream << pack_integer(AMF3_NULL_MARKER)
           stream << pack_double(seconds)
