@@ -54,6 +54,7 @@ module RocketAMF
       def write_utf8(value)
         value ||= ""
 				#value.encode("UTF-8").force_encoding("ASCII-8BIT") if value.respond_to?(:encode)
+        raise "length exceed 64k, you should try write_object" if value.bytesize > 65535
 				write_ushort(value.bytesize)
         @stream.write(value)
       end
